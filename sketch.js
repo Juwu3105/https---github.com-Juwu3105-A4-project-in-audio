@@ -1,106 +1,88 @@
 let song;
 let fft;
 let colors = [];
-var nums1 = [10,100, 210, 320,470, 500, 630, 700,790];
-var nums2 = [30,100, 210, 300, 400, 550, 630, 750,790];
-
-var n=0;
-
-var posY =[];
-var posX =[];
-var fillColors =[];
+let staticDrawn = false;
 
 function preload() {
-  // Replace 'song.mp3' with the path to your audio file
-  song = loadSound("song.mp3");
-
-
+  song = loadSound('song.mp3');
 }
-
-
 
 function setup() {
-    createCanvas(800,800);
-    loop();
-    noStroke();
+  createCanvas(800, 800);
+  noLoop(); 
 
-    //fill(255, 229, 6);
-    let grayColor = color(150);  // Gray
-    let blueColor = color(21, 29, 176);  // Blue
-    let redColor = color(161, 7, 2);  // Red
-  
-    colors.push(grayColor);
-    colors.push(blueColor);
-    colors.push(redColor);
-   
-    //生成随机数据
-   for(var i=0;i<15;i++)
-   {
-     posY.push(random(0,height / 2));
-     posX.push(random(0,width / 2));
-     fillColors.push(random(colors));
-   }
+  let grayColor = color(150); // Gray
+  let blueColor = color(0, 0, 255); // Blue
+  let redColor = color(255, 0, 0); // Red
 
-    fft = new p5.FFT();
-    //song.loop();
+  colors.push(grayColor);
+  colors.push(blueColor);
+  colors.push(redColor);
+
+  fft = new p5.FFT(0.8, 256); 
 }
 
-//click to start the music
-function mousePressed() {
-  if (!song.isPlaying()) {
-    song.loop();
-  }
+function drawStaticElements() {
 }
 
 function draw() {
-background(250);
+  if (!staticDrawn) {
+    drawStaticElements();
+    staticDrawn = true;
+  }
 
-fft.analyze();
-let eBass = fft.getEnergy("bass");
-let diamBass = map(eBass, 0, 255, 0, 15);
-console.log(diamBass);
-
-// Vertical rectangles
-for (let n = 1; n < 10; n++) 
-{
-   
-    if (n == 2 || n == 4 || n == 7) {
-      let x = width / 40 * n * 5;
-      let y = 0;
-      let w = width / 50+diamBass;
-      let h = height / 2;
-      rect(x, y, w, h);
-      //fill in small rects in random 3 colors
-      for(let k = 0; k<15; k++){
-          //rect(x,random(0,h),w,20);
-          rect(x,posY[k],w,20);
-          
-          fill(fillColors[k]);
-      }
-    } 
-    else {
-      let x = width / 50 * n * 5;
-      let y = 0;
-      let w = width / 50+diamBass;
-      let h = height;
-      fill(255, 229, 6);
-      //垂直条
-      rect(x, y, w, h);
-  
-      //fill in small rects in random 3 colors
-      for(let k = 0; k<15; k++){
-          //rect(x,random(0,h),w,20);
-          rect(x,posY[k],w,20);
-          fill(fillColors[k]);
-      }
-    }
-    fill(255, 229, 6);
-
+  let spectrum = fft.analyze();
+  noStroke();
+  for (let i = 0; i < spectrum.length; i++) {
+    let amp = spectrum[i];
+    let y = map(amp, 0, 256, height, 0);
+    fill(i * (255 / spectrum.length), 255, 255); 
+    rect(i * (width / spectrum.length), y, width / spectrum.length, height - y);
+  }
 }
 
+function mousePressed() {
+  if (song.isPlaying()) {
+    song.pause();
+    noLoop();
+  } else {
+    song.loop();
+    loop(); // Continue the drawing loop
+  }
+}
 
+function drawStaticElements() {
+background(250);
 
+// Vertical rectangles
+for (let i = 1; i < 10; i++) {
+    if (i == 2 || i == 4 || i == 7) {
+    let x = width / 40 * i * 5;
+    let y = 0;
+    let w = width / 50;
+    let h = height / 2;
+    rect(x, y, w, h);
 
+    for(let k = 0; k<15; k++){
+        rect(x,random(0,h),w,20);
+        fill(random(colors));
+    }
+    } else {
+    let x = width / 50 * i * 5;
+    let y = 0;
+    let w = width / 50;
+    let h = height;
+    fill(255, 229, 6);
+    rect(x, y, w, h);
+
+    for(let k = 0; k<15; k++){
+        rect(x,random(0,h),w,20);
+        fill(random(colors));
+    }
+    }
+    fill(255, 229, 6);
+    
+}
 
 
   // Horizontal rectangles
@@ -109,25 +91,23 @@ for (let n = 1; n < 10; n++)
         let x = 0;
         let y = height/8 * j;
         let w = width/2;
-        let h =  height/40+diamBass;
+        let h =  height/40;
         rect(x,y,w,h);
-      //fill in small rects in random 3 colors
+
       for(let k = 0; k< 15; k++){
-        //rect(random(0,w),y,20,h);
-        rect(posX[k],y,20,h);
-        fill(fillColors[k]);
+        rect(random(0,w),y,20,h);
+        fill(random(colors));
         }
     } else {
         x = 0;
         y = height/8 * j;
         w = width;
-        h = height/40+diamBass;
-      rect(x, y, w, h+diamBass);
-      //fill in small rects in random 3 colors
+        h = height/40;
+      rect(x, y, w, h);
+
       for(let k = 0; k < 15; k++){
-        //rect(random(0,w),y,20,h)
-        rect(posX[k],y,20,h)
-        fill(fillColors[k]);
+        rect(random(0,w),y,20,h)
+        fill(random(colors));
         }
     }
     fill(255, 229, 6);
@@ -164,7 +144,6 @@ for (let n = 1; n < 10; n++)
   for (let i = 0; i < 10; i++) {
     noStroke();
     fill(255, 229, 6);//yellow
-
     rect(nums1[i]+200,nums2[i]+200,40,80);
   }
 
